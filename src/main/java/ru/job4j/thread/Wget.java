@@ -1,6 +1,6 @@
 package ru.job4j.thread;
 
-import java.io.File;
+import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
@@ -16,22 +16,24 @@ public class Wget implements Runnable {
 
     @Override
     public void run() {
-        var file = new File("data/tmp.xml");
+        var file = this.url.substring(this.url.lastIndexOf("/") + 1);
+        var countBytes = 0;
         try (var input = new URL(this.url).openStream();
-             var output = new FileOutputStream(file)) {
+             var output = new BufferedOutputStream(new FileOutputStream(file))) {
             var dataBuffer = new byte[1024];
             int readBytes;
-            var downloadStart = System.currentTimeMillis();
+            var downloadStartTime = System.currentTimeMillis();
             while ((readBytes = input.read(dataBuffer, 0, dataBuffer.length)) != -1) {
                 output.write(dataBuffer, 0, readBytes);
-                if (readBytes == 1024) {
-                    var timeApp = System.currentTimeMillis() - downloadStart;
-                    var speedApp = 1024 / timeApp;
-                    if (speedApp > this.speed) {
-                        Thread.sleep(speedApp / this.speed);
+                countBytes += readBytes;
+                if (countBytes >= this.speed) {
+                    var appDownloadTime = System.currentTimeMillis() - downloadStartTime;
+                    if (appDownloadTime < 1000) {
+                        Thread.sleep(1000 - appDownloadTime);
                     }
+                    countBytes = 0;
+                    downloadStartTime = System.currentTimeMillis();
                 }
-                downloadStart = System.currentTimeMillis();
             }
         } catch (IOException | InterruptedException e) {
             Thread.currentThread().interrupt();
