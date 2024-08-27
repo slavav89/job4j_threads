@@ -10,7 +10,7 @@ public class ParseFile {
         this.file = file;
     }
 
-    private synchronized String Content(Predicate<Integer> filter) {
+    private synchronized String content(Predicate<Integer> filter) {
         StringBuilder output = new StringBuilder();
         try (BufferedInputStream input = new BufferedInputStream(new FileInputStream(file))) {
             int data;
@@ -26,10 +26,10 @@ public class ParseFile {
     }
 
     public synchronized String getContent() {
-        return Content(i -> true);
+        return content(i -> true);
     }
 
     public synchronized String getContentWithoutUnicode() {
-        return Content(i -> i < 0x80);
+        return content(i -> i < 0x80);
     }
 }
